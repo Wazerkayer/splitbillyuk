@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SplitYuk!">
+<meta name="theme-color" content="#1a1a2e">
+<title>SplitYuk!</title>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@500;600;700&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f7f5f0;--surface:#fff;--surface2:#f0ede6;--border:#e2ddd5;
+  --accent:#1a1a2e;--lime:#c6ff00;--orange:#ff5c35;--teal:#00bfa5;
+  --text:#1a1a2e;--muted:#8a8680;--danger:#e53935;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bot:env(safe-area-inset-bottom,0px);
+  --safe-l:env(safe-area-inset-left,0px);
+  --safe-r:env(safe-area-inset-right,0px);
+  --tab-h:62px;
+  --hdr-h:56px;
+}
+
+html{height:100%;-webkit-text-size-adjust:100%}
+body{
+  font-family:'Instrument Sans',sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100%;
+  /* push content above tab bar */
+  padding-bottom:calc(var(--tab-h) + var(--safe-bot));
+  -webkit-overflow-scrolling:touch;
+}
+
+/* ── HEADER ── */
+.header{
+  background:var(--accent);
+  color:#fff;
+  padding:calc(var(--safe-top) + 12px) calc(var(--safe-r) + 20px) 12px calc(var(--safe-l) + 20px);
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:300;
+}
+.logo{font-family:'Clash Display',sans-serif;font-size:22px;font-weight:700;letter-spacing:-.5px}
+.logo .acc{color:var(--lime)}
+.header-right{font-size:11px;color:rgba(255,255,255,.4);font-weight:600;letter-spacing:.8px;text-transform:uppercase}
+
+/* ── TAB BAR (iOS-style bottom nav) ── */
+.tabbar{
+  position:fixed;bottom:0;left:0;right:0;z-index:400;
+  background:rgba(26,26,46,.97);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-top:1px solid rgba(255,255,255,.08);
+  display:flex;
+  padding-bottom:var(--safe-bot);
+  height:calc(var(--tab-h) + var(--safe-bot));
+}
+.tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:4px;padding:10px 4px 8px;
+  background:none;border:none;cursor:pointer;
+  color:rgba(255,255,255,.3);
+  font-family:'Instrument Sans',sans-serif;
+  font-size:10px;font-weight:700;letter-spacing:.3px;
+  text-transform:uppercase;
+  transition:color .15s;
+  -webkit-user-select:none;user-select:none;
+  position:relative;
+}
+.tab-icon{font-size:20px;line-height:1;transition:transform .15s}
+.tab.active{color:#fff}
+.tab.active .tab-icon{transform:translateY(-2px)}
+.tab.done{color:rgba(198,255,0,.6)}
+.tab-dot{
+  position:absolute;top:8px;right:calc(50% - 14px);
+  width:7px;height:7px;border-radius:50%;
+  background:var(--lime);
+  display:none;
+}
+.tab.done .tab-dot{display:block}
+
+/* ── MAIN SCROLL AREA ── */
+.main{
+  padding:20px calc(var(--safe-r) + 16px) 20px calc(var(--safe-l) + 16px);
+  max-width:680px;margin:0 auto;
+}
+
+/* ── SECTIONS ── */
+.section{display:none;animation:fadeUp .22s ease}
+.section.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── CARDS ── */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:20px;
+  margin-bottom:14px;
+  box-shadow:0 2px 12px rgba(26,26,46,.06);
+}
+.card-title{
+  font-family:'Clash Display',sans-serif;
+  font-size:16px;font-weight:600;
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:18px;
+}
+.card-icon{
+  width:32px;height:32px;
+  background:var(--accent);color:var(--lime);
+  border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font-size:15px;flex-shrink:0;
+}
+
+/* ── FIELDS ── */
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.field:last-child{margin-bottom:0}
+.field label{font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--muted)}
+input,select,textarea{
+  background:var(--surface2);
+  border:1.5px solid var(--border);
+  border-radius:12px;
+  color:var(--text);
+  font-family:'Instrument Sans',sans-serif;
+  font-size:16px; /* 16px prevents iOS zoom */
+  font-weight:500;
+  padding:13px 14px;
+  outline:none;width:100%;
+  -webkit-appearance:none;
+  transition:border-color .15s;
+}
+input:focus,select:focus{border-color:var(--accent)}
+input::placeholder{color:var(--muted);font-weight:400}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%238a8680' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+
+/* ── BUTTONS ── */
+.btn{
+  min-height:48px; /* iOS min touch target */
+  padding:13px 20px;
+  border-radius:12px;border:none;
+  font-family:'Instrument Sans',sans-serif;
+  font-size:15px;font-weight:700;
+  cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  letter-spacing:.1px;white-space:nowrap;
+  -webkit-user-select:none;user-select:none;
+  transition:opacity .1s,transform .1s;
+  width:100%;
+}
+.btn:active{opacity:.8;transform:scale(.98)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-lime{background:var(--lime);color:var(--accent)}
+.btn-outline{background:transparent;color:var(--text);border:1.5px solid var(--border)}
+.btn-ghost{background:transparent;color:var(--muted);border:none;min-height:44px;padding:10px;width:auto;border-radius:10px}
+.btn-ghost:active{background:var(--surface2)}
+.btn-danger-ghost{color:var(--danger)}
+.btn-row{display:flex;gap:10px;margin-top:18px}
+.btn-row .btn{flex:1}
+
+/* ── PERSON CHIPS ── */
+.person-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.person-chip{
+  display:flex;align-items:center;gap:10px;
+  background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:14px;padding:10px 10px 10px 14px;
+  animation:popIn .2s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes popIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.avatar{
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:800;flex-shrink:0;
+}
+.chip-name{flex:1;font-size:15px;font-weight:600}
+.chip-del{
+  width:32px;height:32px;border-radius:50%;
+  background:rgba(229,57,53,.1);color:var(--danger);
+  border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:800;flex-shrink:0;
+}
+.chip-del:active{background:var(--danger);color:#fff}
+.add-row{display:flex;gap:10px;align-items:flex-end}
+.add-row input{flex:1}
+.add-row .btn{width:auto;min-width:90px;flex-shrink:0}
+
+/* ── MODE TABS ── */
+.mode-tabs{display:flex;gap:4px;padding:4px;background:var(--surface2);border-radius:14px;margin-bottom:16px}
+.mode-tab{
+  flex:1;padding:11px 8px;border:none;
+  background:transparent;color:var(--muted);
+  font-family:'Instrument Sans',sans-serif;font-size:12px;font-weight:700;
+  border-radius:11px;cursor:pointer;transition:all .15s;letter-spacing:.2px;
+  min-height:44px;
+}
+.mode-tab.active{background:var(--accent);color:#fff}
+
+/* ── ITEM LIST ── */
+.item-list{display:flex;flex-direction:column;gap:8px}
+.item-card{
+  background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:14px;padding:14px;
+  animation:slideIn .2s ease;
+}
+@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+.item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px}
+.item-name{font-size:15px;font-weight:700;flex:1}
+.item-sub{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--orange);flex-shrink:0}
+.item-meta{font-size:12px;color:var(--muted);font-weight:500;margin-bottom:10px}
+.item-price-mono{font-family:'JetBrains Mono',monospace}
+
+/* assignee badges */
+.ab-section{margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.ab-label{font-size:10px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.ab-row{display:flex;flex-wrap:wrap;gap:6px}
+.ab{
+  padding:7px 14px;border-radius:20px;
+  font-size:12px;font-weight:700;
+  cursor:pointer;border:1.5px solid transparent;
+  transition:all .12s;-webkit-user-select:none;user-select:none;
+  min-height:34px;display:flex;align-items:center;
+}
+.ab.on{opacity:1}
+.ab.off{opacity:.22;filter:grayscale(1)}
+.ab-hint{
+  font-size:11px;color:var(--teal);font-weight:600;
+  margin-top:6px;
+  display:flex;align-items:center;gap:4px;
+}
+.sharing-badge{
+  display:inline-flex;align-items:center;gap:3px;
+  background:rgba(0,191,165,.15);color:var(--teal);
+  border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700;
+  margin-left:6px;
+}
+
+/* add item form */
+.add-item-form{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.add-item-form .field{margin-bottom:0}
+.add-item-form .field-full{grid-column:1/-1}
+
+/* ── TAX CARDS ── */
+.tax-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px}
+.tax-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.tax-name{font-size:13px;font-weight:700}
+.tax-sub{font-size:11px;color:var(--muted);font-weight:500}
+.toggle-switch{
+  width:44px;height:26px;
+  background:var(--border);border-radius:13px;
+  position:relative;cursor:pointer;border:none;
+  transition:background .2s;flex-shrink:0;
+}
+.toggle-switch.on{background:var(--accent)}
+.toggle-switch::after{
+  content:'';width:20px;height:20px;background:#fff;border-radius:50%;
+  position:absolute;top:3px;left:3px;transition:transform .2s;
+  box-shadow:0 1px 4px rgba(0,0,0,.2);
+}
+.toggle-switch.on::after{transform:translateX(18px)}
+.tax-body{display:none}
+.tax-body.show{display:block}
+.inline-row{display:flex;gap:10px}
+.inline-row .field{flex:1;margin-bottom:0}
+
+/* extra taxes */
+.extra-row{
+  display:grid;grid-template-columns:1fr auto;gap:10px;
+  background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:14px;padding:14px;margin-bottom:10px;
+  animation:slideIn .2s ease;
+}
+.extra-row-inner{display:grid;grid-template-columns:1fr 80px 80px;gap:8px}
+.extra-row-inner .field{margin-bottom:0}
+
+/* ── PAYER ── */
+.payer-card{
+  background:var(--accent);color:#fff;
+  border-radius:16px;padding:18px;
+  display:flex;align-items:center;gap:14px;
+  margin-bottom:14px;
+}
+.payer-icon{width:48px;height:48px;background:var(--lime);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.payer-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;opacity:.5;font-weight:700;margin-bottom:5px}
+.payer-select{
+  background:rgba(255,255,255,.12);
+  border:1.5px solid rgba(255,255,255,.2);
+  color:#fff;font-size:15px;font-weight:600;
+  border-radius:10px;padding:10px 14px;width:100%;
+  -webkit-appearance:none;
+  font-family:'Instrument Sans',sans-serif;
+}
+.payer-select option{background:#1a1a2e;color:#fff}
+
+/* ── RESULT ── */
+.result-panel{
+  background:var(--accent);color:#fff;
+  border-radius:20px;padding:22px;
+  margin-bottom:14px;
+  box-shadow:0 8px 40px rgba(26,26,46,.13);
+  animation:fadeUp .3s ease;
+}
+.result-title{font-family:'Clash Display',sans-serif;font-size:20px;margin-bottom:3px}
+.result-sub{font-size:12px;opacity:.4;margin-bottom:20px}
+.total-box{
+  background:rgba(255,255,255,.07);
+  border-radius:14px;padding:16px 18px;
+  margin-bottom:18px;
+}
+.total-label{font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:10px}
+.total-value{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:500;color:var(--lime)}
+.bd-item{display:flex;justify-content:space-between;font-size:12px;opacity:.5;margin-bottom:4px}
+.bd-val{font-family:'JetBrains Mono',monospace}
+
+.person-result{
+  background:rgba(255,255,255,.07);border-radius:14px;
+  padding:15px 16px;margin-bottom:8px;
+  border:1px solid rgba(255,255,255,.06);
+}
+.pr-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.pr-left{display:flex;align-items:center;gap:10px}
+.pr-name-text{font-weight:700;font-size:15px}
+.pr-amount{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:500;color:var(--lime);flex-shrink:0}
+.pr-payer-badge{background:var(--lime);color:var(--accent);border-radius:20px;padding:2px 9px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-left:6px}
+.pr-detail{font-size:11px;opacity:.4;line-height:1.8;font-family:'JetBrains Mono',monospace;white-space:pre-line;margin-bottom:4px}
+.pay-box{background:rgba(255,255,255,.05);border-radius:10px;padding:11px 14px;margin-top:8px}
+.pay-box-label{font-size:9px;opacity:.4;text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:4px}
+.pay-box-name{font-weight:700;color:var(--lime);font-size:13px}
+.pay-box-amt{font-family:'JetBrains Mono',monospace;font-size:12px;opacity:.7;margin-top:2px}
+.recv-row{display:flex;justify-content:space-between;margin-top:4px;font-size:12px}
+.recv-name{opacity:.7}
+.recv-amt{font-family:'JetBrains Mono',monospace;color:var(--lime)}
+
+.share-box{
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;padding:14px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.8;
+  color:rgba(255,255,255,.6);white-space:pre-wrap;
+  max-height:180px;overflow-y:auto;margin-bottom:12px;
+  -webkit-overflow-scrolling:touch;
+}
+.share-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:.4;margin-bottom:8px}
+
+/* ── MISC ── */
+.sep{height:1px;background:var(--border);margin:16px 0}
+.empty-state{text-align:center;padding:32px 16px;color:var(--muted)}
+.empty-icon{font-size:40px;margin-bottom:10px}
+.empty-text{font-size:13px;font-weight:500}
+.hint{font-size:12px;color:var(--muted);line-height:1.6;padding:10px 14px;background:var(--surface2);border-radius:10px;margin-bottom:16px}
+.hint b{color:var(--text)}
+.step-title{font-family:'Clash Display',sans-serif;font-size:22px;font-weight:600;margin-bottom:4px}
+.step-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:calc(var(--tab-h) + var(--safe-bot) + 16px);
+  left:50%;transform:translateX(-50%) translateY(6px);
+  background:var(--accent);color:#fff;
+  padding:12px 22px;border-radius:30px;
+  font-weight:700;font-size:13px;
+  z-index:9999;opacity:0;
+  transition:all .25s;pointer-events:none;
+  box-shadow:0 8px 32px rgba(26,26,46,.25);
+  white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── SUBTOTAL BAR ── */
+.subtotal-bar{
+  background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:12px;padding:12px 16px;
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:12px;
+}
+.subtotal-bar-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.subtotal-bar-value{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--text)}
+
+/* Prevent content behind notch on landscape */
+@media(orientation:landscape){
+  .header{padding-left:max(20px,var(--safe-l));padding-right:max(20px,var(--safe-r))}
+  .main{padding-left:max(16px,var(--safe-l));padding-right:max(16px,var(--safe-r))}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">Split<span class="acc">Yuk!</span></div>
+  <div class="header-right">Split Bill</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- ══ SEC 1: PESERTA ══ -->
+<div class="section active" id="sec1">
+  <div class="step-title">👥 Peserta</div>
+  <div class="step-sub">Siapa saja yang ikut dalam tagihan ini?</div>
+
+  <div class="card">
+    <div class="card-title"><div class="card-icon">📝</div>Info Sesi</div>
+    <div class="field"><label>Nama Sesi / Acara</label><input type="text" id="sessionName" placeholder="Makan di Sushi Tei..." autocomplete="off"></div>
+    <div class="field"><label>Mata Uang</label>
+      <select id="currency">
+        <option value="Rp">Rp — Rupiah (IDR)</option>
+        <option value="$">$ — Dollar (USD)</option>
+        <option value="RM">RM — Ringgit (MYR)</option>
+        <option value="S$">S$ — Singapore Dollar</option>
+        <option value="¥">¥ — Yen (JPY)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><div class="card-icon">👥</div>Daftar Peserta</div>
+    <div class="person-list" id="personList"></div>
+    <div class="add-row">
+      <input type="text" id="newPerson" placeholder="Nama peserta..." autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter'){addPerson();event.preventDefault()}">
+      <button class="btn btn-primary" style="width:auto;min-width:80px" onclick="addPerson()">+ Tambah</button>
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:var(--muted)">💡 Minimal 2 orang</div>
+  </div>
+
+  <button class="btn btn-lime" onclick="tryStep(2)">Lanjut — Tambah Item →</button>
+</div>
+
+<!-- ══ SEC 2: ITEM ══ -->
+<div class="section" id="sec2">
+  <div class="step-title">🍽️ Item Tagihan</div>
+  <div class="step-sub">Masukkan semua item beserta harganya</div>
+
+  <div class="card">
+    <div class="card-title"><div class="card-icon">⚙️</div>Mode Split</div>
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="modeEq" onclick="setSplitMode('equal')">📊 Bagi Rata</button>
+      <button class="mode-tab" id="modeItem" onclick="setSplitMode('item')">🎯 Per Item</button>
+    </div>
+    <div class="hint" id="modeHint"><b>Bagi Rata:</b> Total tagihan (setelah pajak) dibagi merata ke semua peserta.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><div class="card-icon">➕</div>Tambah Item</div>
+    <div class="add-item-form">
+      <div class="field field-full"><label>Nama Item</label><input type="text" id="iName" placeholder="Nasi Goreng Spesial..." autocomplete="off" autocorrect="off"></div>
+      <div class="field"><label>Harga Satuan</label><input type="number" id="iPrice" placeholder="0" min="0" inputmode="numeric"></div>
+      <div class="field"><label>Qty</label><input type="number" id="iQty" value="1" min="1" inputmode="numeric"></div>
+    </div>
+    <button class="btn btn-primary" onclick="addItem()">+ Tambah Item</button>
+  </div>
+
+  <div class="subtotal-bar" id="subtotalBar" style="display:none">
+    <span class="subtotal-bar-label">Subtotal Item</span>
+    <span class="subtotal-bar-value" id="subtotalVal">Rp 0</span>
+  </div>
+
+  <div id="itemEmpty" class="empty-state"><div class="empty-icon">🛒</div><div class="empty-text">Belum ada item</div></div>
+  <div class="item-list" id="itemList"></div>
+
+  <div class="btn-row">
+    <button class="btn btn-outline" onclick="tryStep(1)">← Kembali</button>
+    <button class="btn btn-lime" onclick="tryStep(3)">Lanjut →</button>
+  </div>
+</div>
+
+<!-- ══ SEC 3: PAJAK ══ -->
+<div class="section" id="sec3">
+  <div class="step-title">🧾 Pajak & Biaya</div>
+  <div class="step-sub">Atur pajak, service charge, dan payer</div>
+
+  <div class="payer-card">
+    <div class="payer-icon">🙋</div>
+    <div style="flex:1">
+      <div class="payer-label">Yang bayar duluan (payer)</div>
+      <select class="payer-select" id="payerSelect">
+        <option value="">— Tidak ada —</option>
+      </select>
+    </div>
+  </div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:16px">💡 Yang nombok ke kasir. Yang lain transfer ke dia.</div>
+
+  <!-- PPN -->
+  <div class="tax-card">
+    <div class="tax-top">
+      <div><div class="tax-name">PPN — Pajak Pertambahan Nilai</div><div class="tax-sub">Default 11%</div></div>
+      <button class="toggle-switch" id="togPPN" onclick="doToggle('PPN')"></button>
+    </div>
+    <div class="tax-body" id="bodyPPN">
+      <div class="field" style="margin-bottom:0"><label>Persentase (%)</label><input type="number" id="valPPN" value="11" min="0" max="100" inputmode="decimal"></div>
+    </div>
+  </div>
+
+  <!-- Service Charge -->
+  <div class="tax-card">
+    <div class="tax-top">
+      <div><div class="tax-name">Service Charge</div><div class="tax-sub">Default 5%</div></div>
+      <button class="toggle-switch" id="togSC" onclick="doToggle('SC')"></button>
+    </div>
+    <div class="tax-body" id="bodySC">
+      <div class="field" style="margin-bottom:0"><label>Persentase (%)</label><input type="number" id="valSC" value="5" min="0" max="100" inputmode="decimal"></div>
+    </div>
+  </div>
+
+  <!-- Diskon -->
+  <div class="tax-card">
+    <div class="tax-top">
+      <div><div class="tax-name">Diskon</div><div class="tax-sub">Nominal atau persentase</div></div>
+      <button class="toggle-switch" id="togDisc" onclick="doToggle('Disc')"></button>
+    </div>
+    <div class="tax-body" id="bodyDisc">
+      <div class="inline-row">
+        <div class="field"><label>Nilai</label><input type="number" id="valDisc" value="0" min="0" inputmode="decimal"></div>
+        <div class="field" style="max-width:90px"><label>Tipe</label><select id="discType"><option value="nominal">Rp</option><option value="pct">%</option></select></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Extra taxes -->
+  <div style="display:flex;justify-content:space-between;align-items:center;margin:20px 0 12px">
+    <div><div style="font-size:14px;font-weight:700">Biaya Lainnya</div><div style="font-size:11px;color:var(--muted)">PBSD, cukai, dll.</div></div>
+    <button class="btn btn-outline" style="width:auto;min-width:0;min-height:44px;padding:10px 14px;font-size:13px" onclick="addExtraTax()">+ Tambah</button>
+  </div>
+  <div id="extraTaxList"></div>
+
+  <div class="btn-row">
+    <button class="btn btn-outline" onclick="tryStep(2)">← Kembali</button>
+    <button class="btn btn-lime" onclick="calculate()">🧮 Hitung Sekarang</button>
+  </div>
+</div>
+
+<!-- ══ SEC 4: HASIL ══ -->
+<div class="section" id="sec4">
+  <div id="resultMount"></div>
+  <div class="btn-row">
+    <button class="btn btn-outline" onclick="tryStep(3)">← Edit</button>
+    <button class="btn btn-primary" onclick="copyResult()">📋 Copy Ringkasan</button>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<!-- TAB BAR -->
+<nav class="tabbar">
+  <button class="tab active" id="tab1" onclick="tryStep(1)">
+    <div class="tab-dot"></div>
+    <span class="tab-icon">👥</span>
+    <span>Peserta</span>
+  </button>
+  <button class="tab" id="tab2" onclick="tryStep(2)">
+    <div class="tab-dot"></div>
+    <span class="tab-icon">🍽️</span>
+    <span>Item</span>
+  </button>
+  <button class="tab" id="tab3" onclick="tryStep(3)">
+    <div class="tab-dot"></div>
+    <span class="tab-icon">🧾</span>
+    <span>Pajak</span>
+  </button>
+  <button class="tab" id="tab4" onclick="tryStep(4)">
+    <div class="tab-dot"></div>
+    <span class="tab-icon">🎉</span>
+    <span>Hasil</span>
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── PALETTE ── */
+const COLORS=[
+  {bg:'#c6ff00',text:'#1a1a2e'},{bg:'#ff5c35',text:'#fff'},
+  {bg:'#7c5cbf',text:'#fff'},{bg:'#00bfa5',text:'#fff'},
+  {bg:'#ff4d94',text:'#fff'},{bg:'#0097e6',text:'#fff'},
+  {bg:'#ffd32a',text:'#1a1a2e'},{bg:'#2ecc71',text:'#fff'},
+  {bg:'#e84393',text:'#fff'},{bg:'#f39c12',text:'#fff'},
+];
+function getColor(n){let h=0;for(const c of n)h=(h*31+c.charCodeAt(0))%COLORS.length;return COLORS[h]}
+function fmt(n){return Math.round(n).toLocaleString('id-ID')}
+function curr(){return document.getElementById('currency').value}
+function esc(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
+
+/* ── STATE ── */
+let persons=[], items=[], nid=1;
+let splitMode='equal';
+let toggles={PPN:false,SC:false,Disc:false};
+let extraTaxes=[], nextExId=1;
+let lastResult=null;
+let currentStep=1;
+let resultReady=false;
+
+/* ── NAV ── */
+function tryStep(s){
+  if(s===4){
+    if(!resultReady){showToast('🧮 Hitung dulu di tab Pajak!');return}
+    goStep(4);return;
+  }
+  if(s>=2&&persons.length<2){showToast('⚠️ Tambah minimal 2 peserta dulu!');return}
+  if(s>=3&&items.length<1){showToast('⚠️ Tambah minimal 1 item dulu!');return}
+  goStep(s);
+}
+function goStep(s){
+  [1,2,3,4].forEach(i=>{
+    document.getElementById('sec'+i).classList.toggle('active',i===s);
+    const t=document.getElementById('tab'+i);
+    t.classList.remove('active','done');
+    if(i===s)t.classList.add('active');
+    else if(i<s)t.classList.add('done');
+  });
+  currentStep=s;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ── PERSONS ── */
+function addPerson(){
+  const inp=document.getElementById('newPerson');
+  const name=inp.value.trim();
+  if(!name)return showToast('Masukkan nama');
+  if(persons.includes(name))return showToast('Nama sudah ada!');
+  persons.push(name);inp.value='';
+  items.forEach(item=>item.assignees.add(name));
+  renderPersons();updatePayerSelect();
+}
+function removePerson(name){
+  persons=persons.filter(p=>p!==name);
+  items.forEach(item=>item.assignees.delete(name));
+  renderPersons();updatePayerSelect();renderItems();
+}
+function renderPersons(){
+  const list=document.getElementById('personList');
+  if(!persons.length){list.innerHTML='';return}
+  list.innerHTML=persons.map(p=>{
+    const col=getColor(p);
+    return`<div class="person-chip">
+      <div class="avatar" style="background:${col.bg};color:${col.text}">${p[0].toUpperCase()}</div>
+      <span class="chip-name">${p}</span>
+      <button class="chip-del" onclick="removePerson('${esc(p)}')">✕</button>
+    </div>`;
+  }).join('');
+}
+function updatePayerSelect(){
+  const sel=document.getElementById('payerSelect');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— Tidak ada —</option>'+
+    persons.map(p=>`<option value="${esc(p)}"${p===cur?' selected':''}>${p}</option>`).join('');
+}
+
+/* ── SPLIT MODE ── */
+function setSplitMode(m){
+  splitMode=m;
+  document.getElementById('modeEq').classList.toggle('active',m==='equal');
+  document.getElementById('modeItem').classList.toggle('active',m==='item');
+  const h={
+    equal:'<b>Bagi Rata:</b> Total tagihan (setelah pajak) dibagi merata ke semua peserta.',
+    item:'<b>Per Item:</b> Ketuk nama di tiap item untuk pilih siapa yang nanggung. Kalau lebih dari 1 orang dipilih, harga item dibagi rata di antara mereka (sharing 🔀).'
+  };
+  document.getElementById('modeHint').innerHTML=h[m];
+  renderItems();
+}
+
+/* ── ITEMS ── */
+function addItem(){
+  const name=document.getElementById('iName').value.trim();
+  const price=parseFloat(document.getElementById('iPrice').value);
+  const qty=parseInt(document.getElementById('iQty').value)||1;
+  if(!name)return showToast('Masukkan nama item');
+  if(!price||price<0)return showToast('Harga tidak valid');
+  items.push({id:nid++,name,price,qty,assignees:new Set(persons)});
+  document.getElementById('iName').value='';
+  document.getElementById('iPrice').value='';
+  document.getElementById('iQty').value='1';
+  document.getElementById('iName').focus();
+  renderItems();
+}
+function removeItem(id){items=items.filter(i=>i.id!==id);renderItems()}
+function toggleAssignee(id,name){
+  const item=items.find(i=>i.id===id);if(!item)return;
+  if(item.assignees.has(name)){
+    if(item.assignees.size<=1)return showToast('Minimal 1 orang per item');
+    item.assignees.delete(name);
+  }else{item.assignees.add(name)}
+  renderItems();
+}
+
+function renderItems(){
+  const c=curr();
+  const isItem=splitMode==='item';
+  const list=document.getElementById('itemList');
+  const empty=document.getElementById('itemEmpty');
+  const bar=document.getElementById('subtotalBar');
+  const sv=document.getElementById('subtotalVal');
+
+  if(!items.length){list.innerHTML='';empty.style.display='block';bar.style.display='none';return}
+  empty.style.display='none';bar.style.display='flex';
+  const sub=items.reduce((s,i)=>s+i.price*i.qty,0);
+  sv.textContent=c+' '+fmt(sub);
+
+  list.innerHTML=items.map(item=>{
+    const sub=item.price*item.qty;
+    const assigned=[...item.assignees].filter(p=>persons.includes(p));
+    const sharing=assigned.length>1;
+    const perPerson=sharing?sub/assigned.length:null;
+
+    let abSection='';
+    if(isItem){
+      const badges=persons.map(p=>{
+        const on=item.assignees.has(p);
+        const col=getColor(p);
+        return`<span class="ab ${on?'on':'off'}"
+          style="background:${on?col.bg:'var(--surface2)'};color:${on?col.text:'var(--muted)'};border-color:${on?col.bg:'var(--border)'}"
+          onclick="toggleAssignee(${item.id},'${esc(p)}')">${p}</span>`;
+      }).join('');
+      const hint=sharing?`<div class="ab-hint">🔀 Sharing: ${c} ${fmt(perPerson)} / orang (${assigned.length} orang)</div>`:'';
+      abSection=`<div class="ab-section">
+        <div class="ab-label">Ditanggung oleh (ketuk untuk toggle)</div>
+        <div class="ab-row">${badges}</div>
+        ${hint}
+      </div>`;
+    }
+
+    const sharingBadge=isItem&&sharing?`<span class="sharing-badge">🔀 ÷${assigned.length}</span>`:'';
+    return`<div class="item-card">
+      <div class="item-top">
+        <div class="item-name">${item.name}${sharingBadge}</div>
+        <div class="item-sub">${c} ${fmt(sub)}</div>
+      </div>
+      <div class="item-meta"><span class="item-price-mono">${c} ${fmt(item.price)}</span> × ${item.qty}</div>
+      ${abSection}
+      <div style="display:flex;justify-content:flex-end;margin-top:6px">
+        <button class="btn btn-ghost btn-danger-ghost" onclick="removeItem(${item.id})" style="font-size:13px">🗑 Hapus</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── TOGGLES ── */
+function doToggle(key){
+  toggles[key]=!toggles[key];
+  document.getElementById('tog'+key).classList.toggle('on',toggles[key]);
+  document.getElementById('body'+key).classList.toggle('show',toggles[key]);
+}
+
+/* ── EXTRA TAXES ── */
+function addExtraTax(){
+  const id=nextExId++;
+  extraTaxes.push({id,name:'',value:0,type:'pct'});
+  renderExtraTaxes();
+}
+function removeExtraTax(id){extraTaxes=extraTaxes.filter(t=>t.id!==id);renderExtraTaxes()}
+function updET(id,key,val){
+  const t=extraTaxes.find(x=>x.id===id);
+  if(t)t[key]=key==='value'?parseFloat(val)||0:val;
+}
+function renderExtraTaxes(){
+  document.getElementById('extraTaxList').innerHTML=extraTaxes.map(t=>`
+    <div class="extra-row">
+      <div class="extra-row-inner">
+        <div class="field"><label>Nama</label><input type="text" value="${t.name}" placeholder="PBSD, Cukai..." oninput="updET(${t.id},'name',this.value)" autocomplete="off"></div>
+        <div class="field"><label>Nilai</label><input type="number" value="${t.value}" min="0" inputmode="decimal" oninput="updET(${t.id},'value',this.value)"></div>
+        <div class="field"><label>Tipe</label><select onchange="updET(${t.id},'type',this.value)"><option value="pct"${t.type==='pct'?' selected':''}>%</option><option value="nominal"${t.type==='nominal'?' selected':''}>Rp</option></select></div>
+      </div>
+      <button class="btn btn-ghost btn-danger-ghost" onclick="removeExtraTax(${t.id})" style="align-self:flex-end;font-size:13px">🗑</button>
+    </div>`).join('');
+}
+
+/* ── CALCULATE ── */
+function calculate(){
+  if(persons.length<2)return showToast('⚠️ Minimal 2 peserta!');
+  if(!items.length)return showToast('⚠️ Minimal 1 item!');
+
+  const c=curr();
+  const sub=items.reduce((s,i)=>s+i.price*i.qty,0);
+  const ppnPct=parseFloat(document.getElementById('valPPN').value)||0;
+  const scPct=parseFloat(document.getElementById('valSC').value)||0;
+  const ppn=toggles.PPN?sub*(ppnPct/100):0;
+  const sc=toggles.SC?sub*(scPct/100):0;
+
+  let disc=0;
+  if(toggles.Disc){
+    const dv=parseFloat(document.getElementById('valDisc').value)||0;
+    disc=document.getElementById('discType').value==='pct'?sub*(dv/100):dv;
+  }
+
+  let extraTotal=0;
+  const extraDetails=extraTaxes.map(t=>{
+    const amt=t.type==='pct'?sub*(t.value/100):t.value;
+    extraTotal+=amt;
+    return{name:t.name||'Biaya Lain',amt};
+  });
+
+  const grand=Math.max(0,sub+ppn+sc+extraTotal-disc);
+  const payer=document.getElementById('payerSelect').value;
+
+  let shares={},details={};
+  persons.forEach(p=>{shares[p]=0;details[p]=[]});
+
+  if(splitMode==='equal'){
+    const each=grand/persons.length;
+    persons.forEach(p=>shares[p]=each);
+  } else {
+    let raw={};persons.forEach(p=>raw[p]=0);
+    items.forEach(item=>{
+      const assigned=[...item.assignees].filter(p=>persons.includes(p));
+      if(!assigned.length)return;
+      const tot=item.price*item.qty;
+      const per=tot/assigned.length;
+      const note=assigned.length>1?` (÷${assigned.length} sharing)`:'';
+      assigned.forEach(p=>{
+        raw[p]+=per;
+        details[p].push(`${item.name}×${item.qty}${note}: ${c} ${fmt(per)}`);
+      });
+    });
+    const rawSum=Object.values(raw).reduce((a,b)=>a+b,0);
+    if(rawSum>0){
+      const scale=grand/rawSum;
+      const hasTax=Math.abs(scale-1)>0.001;
+      persons.forEach(p=>{
+        if(hasTax){
+          const taxPart=(grand-rawSum)*(raw[p]/rawSum);
+          if(Math.abs(taxPart)>1)details[p].push(`Pajak/biaya prop.: ${c} ${fmt(taxPart)}`);
+        }
+        shares[p]=raw[p]*scale;
+      });
+    }
+  }
+
+  const payToRows=payer
+    ?persons.filter(p=>p!==payer).map(p=>({from:p,to:payer,amount:shares[p]}))
+    :[];
+
+  lastResult={shares,details,grand,sub,ppn,sc,disc,extraDetails,payToRows,payer,c,ppnPct,scPct};
+  renderResult(lastResult);
+  resultReady=true;
+  goStep(4);
+}
+
+/* ── RENDER RESULT ── */
+function renderResult(r){
+  const {shares,details,grand,sub,ppn,sc,disc,extraDetails,payToRows,payer,c,ppnPct,scPct}=r;
+  const sname=document.getElementById('sessionName').value||'Split Bill';
+
+  let bd=`<div class="bd-item"><span>Subtotal item</span><span class="bd-val">${c} ${fmt(sub)}</span></div>`;
+  if(ppn>0)bd+=`<div class="bd-item"><span>PPN (${ppnPct}%)</span><span class="bd-val">+ ${c} ${fmt(ppn)}</span></div>`;
+  if(sc>0)bd+=`<div class="bd-item"><span>Service Charge (${scPct}%)</span><span class="bd-val">+ ${c} ${fmt(sc)}</span></div>`;
+  extraDetails.forEach(e=>{if(e.amt>0)bd+=`<div class="bd-item"><span>${e.name}</span><span class="bd-val">+ ${c} ${fmt(e.amt)}</span></div>`});
+  if(disc>0)bd+=`<div class="bd-item"><span>Diskon</span><span class="bd-val" style="color:var(--lime)">- ${c} ${fmt(disc)}</span></div>`;
+
+  const cards=persons.map(p=>{
+    const col=getColor(p);
+    const amt=shares[p];
+    const isPayer=p===payer;
+    const det=details[p]||[];
+    let payInfo='';
+    if(payer){
+      if(isPayer){
+        const rows=payToRows.map(r=>`<div class="recv-row"><span class="recv-name">${r.from}</span><span class="recv-amt">${c} ${fmt(r.amount)}</span></div>`).join('');
+        payInfo=`<div class="pay-box"><div class="pay-box-label">💰 Menerima dari</div>${rows||'<div style="opacity:.4;font-size:12px">—</div>'}</div>`;
+      } else {
+        payInfo=`<div class="pay-box"><div class="pay-box-label">💸 Transfer ke</div><div class="pay-box-name">👤 ${payer}</div><div class="pay-box-amt">${c} ${fmt(amt)}</div></div>`;
+      }
+    }
+    return`<div class="person-result">
+      <div class="pr-top">
+        <div class="pr-left">
+          <div class="avatar" style="background:${col.bg};color:${col.text};width:38px;height:38px;font-size:15px">${p[0].toUpperCase()}</div>
+          <span class="pr-name-text">${p}${isPayer&&payer?'<span class="pr-payer-badge">Payer</span>':''}</span>
+        </div>
+        <div class="pr-amount">${c} ${fmt(amt)}</div>
+      </div>
+      ${det.length?`<div class="pr-detail">${det.join('\n')}</div>`:''}
+      ${payInfo}
+    </div>`;
+  }).join('');
+
+  document.getElementById('resultMount').innerHTML=`
+    <div class="result-panel">
+      <div class="result-title">🎉 ${sname}</div>
+      <div class="result-sub">${persons.length} peserta · ${items.length} item · ${splitMode==='equal'?'Bagi Rata':'Per Item'}</div>
+      <div class="total-box">
+        <div class="total-label">Rincian Total</div>
+        ${bd}
+        <div style="height:1px;background:rgba(255,255,255,.08);margin:10px 0"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;font-weight:700;opacity:.6;text-transform:uppercase;letter-spacing:.5px">Grand Total</span>
+          <span class="total-value">${c} ${fmt(grand)}</span>
+        </div>
+      </div>
+      ${cards}
+      <div style="margin-top:18px">
+        <div class="share-label">📋 Ringkasan siap share</div>
+        <div class="share-box" id="shareText">${buildShare(r,sname)}</div>
+      </div>
+    </div>`;
+}
+
+function buildShare({shares,grand,sub,ppn,sc,disc,extraDetails,payToRows,payer,c,ppnPct,scPct},sname){
+  const lines=[
+    `💳 ${sname}`,``,`📋 Item:`,
+    ...items.map(i=>`  • ${i.name} ×${i.qty} = ${c} ${fmt(i.price*i.qty)}`),``,
+    `  Subtotal       : ${c} ${fmt(sub)}`,
+    ppn>0?`  PPN (${ppnPct}%)      : ${c} ${fmt(ppn)}`:null,
+    sc>0?`  Service Charge: ${c} ${fmt(sc)}`:null,
+    ...extraDetails.map(e=>e.amt>0?`  ${(e.name+'              ').slice(0,14)}: ${c} ${fmt(e.amt)}`:null),
+    disc>0?`  Diskon        : -${c} ${fmt(disc)}`:null,
+    `  ${'─'.repeat(26)}`,
+    `  TOTAL          : ${c} ${fmt(grand)}`,``,
+    `👥 Tagihan per orang:`,
+    ...persons.map(p=>`  ${p}: ${c} ${fmt(shares[p])}`),
+  ];
+  if(payer&&payToRows.length){
+    lines.push(``,`💸 Transfer ke ${payer}:`);
+    payToRows.forEach(r=>lines.push(`  ${r.from} → ${c} ${fmt(r.amount)}`));
+  }
+  lines.push(``,`✅ via SplitYuk!`);
+  return lines.filter(l=>l!==null).join('\n');
+}
+
+function copyResult(){
+  const el=document.getElementById('shareText');
+  if(!el)return showToast('Hitung dulu!');
+  navigator.clipboard.writeText(el.textContent)
+    .then(()=>showToast('✅ Disalin! Tinggal paste ke WA 🎉'))
+    .catch(()=>{
+      // fallback for older iOS
+      const ta=document.createElement('textarea');
+      ta.value=el.textContent;ta.style.position='fixed';ta.style.opacity='0';
+      document.body.appendChild(ta);ta.focus();ta.select();
+      try{document.execCommand('copy');showToast('✅ Disalin!')}catch(e){showToast('Gagal copy')}
+      document.body.removeChild(ta);
+    });
+}
+
+/* ── TOAST ── */
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+/* ── INIT ── */
+renderPersons();renderItems();
+</script>
+</body>
+</html>
